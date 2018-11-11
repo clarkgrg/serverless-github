@@ -1,6 +1,6 @@
 # Serverless Github checker
 
-More fun from #noServerNovember
+More fun from Serverless #noServerNovember challenge
 
 ## Use Case
 
