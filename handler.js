@@ -26,17 +26,36 @@ function getSHA(body) {
   }
 }
 
+function success(message) {
+  return {
+    statusCode: 200,
+    body: JSON.stringify({
+      message: message,
+    }),    
+  };
+}
+
+function fail(message) {
+  return {
+    statusCode: 500,
+    body: JSON.stringify({
+      message: message,
+    }),    
+  };
+}
+
 module.exports.checker = async (event, context) => {
   let githubClient = github.client(config.github_token);
 
   const body = JSON.parse(event.body);
   console.log(body);
+  let status = {};
+  let statusCode = 200;
 
   if (isAPullRequest(body)) {
     const repoName = getRepoName(body);
     const sha = getSHA(body);
     const postURL = `/repos/${repoName}/statuses/${sha}`;
-    let status = {};
     if (hasAReference(body)) {
       status = {
         state: 'success',
@@ -52,15 +71,12 @@ module.exports.checker = async (event, context) => {
     }
     try {
       await githubClient.postAsync(postURL, status);
+      return success(status.description);
     } catch (err) {
       console.log(err);
+      return fail(err);
     }
+  } else {
+    return fail('Not a pull request');
   }
-  return {
-    statusCode: 200,
-    body: JSON.stringify({
-      message: body,
-      input: event,
-    }),
-  };
 };
